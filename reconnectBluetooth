@@ -1,0 +1,89 @@
+#!/bin/bash 
+# 
+#                                  .x+=:.                                                     ..          .x+=:.   
+#         xeee    dL ud8Nu  :8c   z`    ^%                                                  dF           z`    ^%  
+#        d888R    8Fd888888L %8      .   <k                             u.      u.    u.   '88bu.           .   <k 
+#       d8888R    4N88888888cuR    .@8Ned8"      .u          .    ...ue888b   x@88k u@88c. '*88888bu      .@8Ned8" 
+#      @ 8888R    4F   ^""%""d   .@^%8888"    ud8888.   .udR88N   888R Y888r ^"8888""8888"   ^"*8888N   .@^%8888"  
+#    .P  8888R    d       .z8   x88:  `)8b. :888'8888. <888'888k  888R I888>   8888  888R   beWE "888L x88:  `)8b. 
+#   :F   8888R    ^     z888    8888N=*8888 d888 '88%" 9888 'Y"   888R I888>   8888  888R   888E  888E 8888N=*8888 
+#  x"    8888R        d8888'     %8"    R88 8888.+"    9888       888R I888>   8888  888R   888E  888E  %8"    R88 
+# d8eeeee88888eer    888888       @8Wou 9%  8888L      9888      u8888cJ888    8888  888R   888E  888F   @8Wou 9%  
+#        8888R      :888888     .888888P`   '8888c. .+ ?8888u../  "*888*P"    "*88*" 8888" .888N..888  .888888P`   
+#        8888R       888888     `   ^"F      "88888%    "8888P'     'Y"         ""   'Y"    `"888*""   `   ^"F     
+#     "*%%%%%%**~    '%**%                     "YP'       "P'                                  ""                  
+#
+
+
+FILE=~/scripts/bluetoothDevices.txt
+
+bluetooth_reconnect() {
+  {
+    sleep 2
+    echo "remove $1"
+    sleep 2
+    echo "power on"
+    sleep 2
+    echo "scan on"
+    sleep 10
+    echo -e "pair $1\ntrust $1\nconnect $1"
+    sleep 5
+    echo "exit"
+  } | bluetoothctl
+}
+
+if [ ${1,,} == '-h' ] || [ ${1,,} == '--help' ]; then
+  echo -e "\nFor reconnecting all bluetooth devices from bluetoothDevices.txt:\n $0\n"
+  echo -e "For multiple devices:\n $0 [DEVICES MAC ADDRESSES]\n"
+  echo -e "For appending move devices in list:\n $0 -a [DEVICES MAC ADDRESSES]\n"
+  echo -e "For listing all devices:\n$0 list OR $0 devices\n"
+  echo -e "Devices list is stored at:\n~/scripts/bluetoothDevices.txt\n"
+  echo -e "NOTE: NEVER USE APPEND DEVICES COMMAND WHEN LIST IS EMPTY\nALWAYS INITIALIZE WITH FIRST ADDING DEVICES RATHER THEN APPENDING THEM\nIF NOT CAREFULL, SCRIPT WILL MALFUNCTION AND START CONNECTING TO EMPTY DEVICES WHICH WILL JUST CONSUME TIME FOR NO REASON\n"
+
+elif [ ${1,,} == 'list' ] || [ ${1,,} == 'devices' ]; then
+  if [ ! -f $FILE ]; then
+    echo ""
+  else
+    cat $FILE
+  fi
+
+elif [ $# -eq 0 ]; then
+  cat "$FILE"
+  while IFS= read -r device || [[ -n "$device" ]]; do
+    bluetooth_reconnect "$device"
+  done < "$FILE"
+
+else
+  if [ ! -f $FILE ]; then
+    touch $FILE
+  fi
+  
+  if [ $1 == '-a' ]; then
+    if [ $2 == '']; then
+      echo "provide MAC addresses to append in blueloothDevices.txt list"
+    else
+      for (( i=1;i<=$#;i++ )); do
+        echo ${!i} >> $FILE
+      done
+    fi
+  else
+    echo $1 > $FILE
+    for (( i=2;i<=$#;i++ )); do
+      echo ${!i} >> $FILE
+    done
+  fi
+fi
+
+
+#                        .          ..                                                                                     s       .       .x+=:.   
+#                       @88>  x .d88"                                                                                     :8      @88>    z`    ^%  
+#    ..    .     :      %8P    5888R                               .u    .                   x.    .        .u    .      .88      %8P        .   <k 
+#  .888: x888  x888.     .     '888R        .u            .u     .d88B :@8c           .    .@88k  z88u    .d88B :@8c    :888ooo    .       .@8Ned8" 
+# ~`8888~'888X`?888f`  .@88u    888R     ud8888.       ud8888.  ="8888f8888r     .udR88N  ~"8888 ^8888   ="8888f8888r -*8888888  .@88u   .@^%8888"  
+#   X888  888X '888>  ''888E`   888R   :888'8888.    :888'8888.   4888>'88"     <888'888k   8888  888R     4888>'88"    8888    ''888E` x88:  `)8b. 
+#   X888  888X '888>    888E    888R   d888 '88%"    d888 '88%"   4888> '       9888 'Y"    8888  888R     4888> '      8888      888E  8888N=*8888 
+#   X888  888X '888>    888E    888R   8888.+"       8888.+"      4888>         9888        8888  888R     4888>        8888      888E   %8"    R88 
+#   X888  888X '888>    888E    888R   8888L         8888L       .d888L .+      9888        8888 ,888B .  .d888L .+    .8888Lu=   888E    @8Wou 9%  
+#  "*88%""*88" '888!`   888&   .888B . '8888c. .+    '8888c. .+  ^"8888*"       ?8888u../  "8888Y 8888"   ^"8888*"     ^%888*     888&  .888888P`   
+#    `~    "    `"`     R888"  ^*888%   "88888%       "88888%       "Y"          "8888P'    `Y"   'YP        "Y"         'Y"      R888" `   ^"F     
+#                        ""      "%       "YP'          "YP'                       "P'                                             ""               
