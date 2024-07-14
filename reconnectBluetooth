@@ -1,3 +1,4 @@
+#!/bin/bash
 FILE=~/scripts/bluetoothDevices.txt
 
 bluetooth_reconnect() {
